@@ -1,0 +1,16 @@
+#Full path to your private key file.  should be a .pem file
+export TF_VAR_private_key_file=""
+#Name of key pair in the AWS target region that matches your private key file above
+export TF_VAR_key_pair=""
+#Unique prefix used for NAME tag of every resource created in AWS by this template
+export TF_VAR_unique_id="C1NSDEMO"
+#AWS Target region
+export TF_VAR_region=""
+#AWS Access Key 
+export AWS_ACCESS_KEY_ID=""
+#AWS Secret Access key
+export AWS_SECRET_ACCESS_KEY=""
+#Cloud One console API key
+export TF_VAR_c1_api_key=''
+#Your current public IP address.  This will be added to resource groups to allow your public IP access to the AWS resources
+export TF_VAR_my_pub_ip=$(curl -s https://api.ipify.org)/32
