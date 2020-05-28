@@ -1,3 +1,4 @@
+#Source this file to define environment variables prior to running terraform
 #Full path to your private key file.  should be a .pem file
 export TF_VAR_private_key_file=""
 #Name of key pair in the AWS target region that matches your private key file above

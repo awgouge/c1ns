@@ -59,7 +59,8 @@ variable "cloudwatch_logs_role" {
 variable "cnp_amis" {
   type = map(string)
   default = {
-    owner_id = "679593333241" #AWS Marketplace
+    #owner_id = "679593333241" #AWS Marketplace
+    owner_id = "511311637224" #TP Dev account
     name     = "IPS_AMI--5.5.0.10403*"
   }
 }

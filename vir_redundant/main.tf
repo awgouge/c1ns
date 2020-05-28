@@ -676,7 +676,7 @@ data "aws_ami" "cnp_ami" {
     values = ["hvm"]
     }
 
-    owners = ["511311637224"] #Dev account
+    owners = [var.cnp_amis.owner_id]
 }
 #Interfaces for cnp1
 resource "aws_network_interface" "cnp1_mgmt" {
