@@ -873,6 +873,9 @@ output "workload1_public_ip" {
 output "workload1_vulnerable_webite" {
   value = format("http://%s", aws_eip.work1_eip.public_ip)
 }
+output "workload1_vuln_website_login_info" {
+  value = format("%s/%s", "admin", "password")
+}
 output "cnp1_mgmt_ip" {
   value = aws_network_interface.cnp1_mgmt.private_ip
 }
