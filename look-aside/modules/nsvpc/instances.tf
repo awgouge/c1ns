@@ -185,7 +185,7 @@ resource aws_instance this {
   })
 
   lifecycle {
-    ignore_changes = [tags]
+    ignore_changes = [tags, ami]
   }
 
   user_data = <<-EOT
@@ -213,6 +213,13 @@ resource aws_instance this {
     log-group-name nsva
     # -- END VTPS CLOUDWATCH
   EOT
+
+  #For future use to unregister NSVA instances from CloudOne console
+  provisioner "local-exec" {
+    when    = destroy
+    command = ""
+    on_failure = continue
+  }
 
   depends_on = [aws_cloudwatch_log_group.nsva]
 }

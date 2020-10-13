@@ -9,6 +9,10 @@ locals {
     "network-security-test-vpc1" = cidrsubnet(var.demo_cidrs[0], 4, 1)
     "network-security-test-vpc2" = cidrsubnet(var.demo_cidrs[1], 4, 1)
   }
+  victim_subnets = {
+    "network-security-test-vpc1" = cidrsubnet(var.demo_cidrs[1], 4, 0)
+    "network-security-test-vpc2" = cidrsubnet(var.demo_cidrs[0], 4, 0)
+  }
 }
 
 resource "aws_vpc" "vpcs" {
@@ -137,14 +141,6 @@ resource "aws_ec2_transit_gateway_route_table_association" "tgw_ass" {
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.work_tgw_rtb.id
 }
 
-resource "aws_ec2_transit_gateway_route" "work_tgw_rtb_route" {
-  for_each = local.private_workload_subnets
-
-  destination_cidr_block         = each.value
-  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.tgw_att[each.key].id
-  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.work_tgw_rtb.id
-}
-
 #create security group for the test workloads
 resource "aws_security_group" "sgs" {
   for_each = local.private_workload_subnets
@@ -152,10 +148,31 @@ resource "aws_security_group" "sgs" {
   vpc_id      = aws_vpc.vpcs[each.key].id
 
   ingress {
-    from_port   = 0
+    from_port   = 8
     to_port     = 0
-    protocol    = "-1"
+    protocol    = "icmp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = var.flask_port
+    to_port     = var.flask_port
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = var.struts_port
+    to_port     = var.struts_port
+    protocol    = "tcp"
+    cidr_blocks = ["${cidrhost(local.victim_subnets[each.key], 10)}/32"]
   }
 
   egress {
@@ -211,21 +228,31 @@ resource "aws_instance" "work_host" {
   vpc_security_group_ids      = [aws_security_group.sgs[each.key].id]
   subnet_id                   = aws_subnet.private_workload_subnets[each.key].id
   associate_public_ip_address = true
+  private_ip                  = cidrhost(local.private_workload_subnets[each.key], 10)
 
-  user_data = <<EOF
-  #cloud-config
-  repo_update: true
-  repo_upgrade: all
+  user_data = <<-EOF
+#!/bin/bash
+sudo apt update
+sudo apt upgrade -y
+sudo apt install -y screen python python3 python3-venv python3-pip git
+#screen -S testping -dm ping ${cidrhost(local.victim_subnets[each.key], 10)}
+curl -fsSL https://get.docker.com -o get-docker.sh; sh get-docker.sh
+sudo docker run -d -p ${var.struts_port}:8080 --name lab-apache-struts jrrdev/cve-2017-5638
+cd /home/ubuntu
+git clone https://github.com/awgouge/c1ns_demo_flask.git
+cd /home/ubuntu/c1ns_demo_flask
+sudo chmod +x init.sh
+sudo -H ./init.sh ${cidrhost(local.victim_subnets[each.key], 10)} ${var.struts_port}
 
-  packages:
-   - screen
-
-  runcmd:
-    - screen -S testping2 -dm ping ${cidrhost(local.private_workload_subnets["network-security-test-vpc2"], 15)}
-    - screen -S testping1 -dm ping ${cidrhost(local.private_workload_subnets["network-security-test-vpc1"], 15)}
   EOF
 
   tags = merge(var.demo_tags, {
     Name="${each.key}-test-workload"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
+  depends_on = [aws_ec2_transit_gateway.tgw] #added to address timing issue createing the TGW
 }

@@ -39,6 +39,10 @@ resource "aws_vpc" "nsvpc" {
   tags = merge(var.nsvpc_tags, {
     Name = var.nsvpc_name
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_subnet" "mgmt_subnets" {
@@ -52,6 +56,10 @@ resource "aws_subnet" "mgmt_subnets" {
     Name="network-security-mgmt-subnet-${each.key}"
     netsec_subnet_type="management"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_subnet" "public_subnets" {
@@ -65,6 +73,10 @@ resource "aws_subnet" "public_subnets" {
     Name="network-security-public-subnet-${each.key}"
     netsec_subnet_type="public"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_subnet" "private_connection_subnets" {
@@ -78,6 +90,10 @@ resource "aws_subnet" "private_connection_subnets" {
     Name="network-security-private_connection_subnet-${each.key}"
     netsec_subnet_type="connection"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_subnet" "private_sanitized_subnets" {
@@ -91,6 +107,10 @@ resource "aws_subnet" "private_sanitized_subnets" {
     Name="network-security-private_sanitized_subnet-${each.key}"
     netsec_subnet_type="sanitized"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_subnet" "private_inspection_subnets" {
@@ -104,6 +124,10 @@ resource "aws_subnet" "private_inspection_subnets" {
     Name="network-security-private_inspection_subnet-${each.key}"
     netsec_subnet_type="inspection"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_internet_gateway" "igw" {
@@ -112,6 +136,10 @@ resource "aws_internet_gateway" "igw" {
   tags = merge(var.nsvpc_tags, {
     Name="network-security-IGW"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_eip" "ngw_eips" {
@@ -122,6 +150,10 @@ resource "aws_eip" "ngw_eips" {
   tags = merge(var.nsvpc_tags, {
     Name="network-security-NGW-EIP-${each.key}"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_nat_gateway" "ngws" {
@@ -134,6 +166,10 @@ resource "aws_nat_gateway" "ngws" {
   tags = merge(var.nsvpc_tags, {
     Name="network-security-NGW-${each.key}"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 #One management route table per subnet
@@ -150,6 +186,10 @@ resource "aws_route_table" "mgmt_rtbs" {
   tags = merge(var.nsvpc_tags, {
     Name="network-security-mgmt-rtb-${each.key}"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_route_table_association" "mgmt_rtb_ass" {
@@ -171,6 +211,10 @@ resource "aws_route_table" "public_rtb" {
   tags = merge(var.nsvpc_tags, {
     Name="network-security-public-rtb"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_route_table_association" "public_rtb_ass" {
@@ -192,8 +236,12 @@ resource "aws_route_table" "private_sanitized_subnets_rtbs" {
   }
 
   tags = merge(var.nsvpc_tags, {
-    Name="network-security-mgmt-rtb-${each.key}"
+    Name="network-security-sanitized-rtb-${each.key}"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_route_table_association" "private_sanitized_subnets_rtb_ass" {
@@ -222,6 +270,10 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "tgw_att" {
   tags = merge(var.nsvpc_tags, {
     Name="network-security-tgw-att"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_ec2_transit_gateway_route_table" "netsec_tgw_rtb" {
@@ -230,6 +282,10 @@ resource "aws_ec2_transit_gateway_route_table" "netsec_tgw_rtb" {
   tags = merge(var.nsvpc_tags, {
     Name="tgw-netsec-rtb"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_ec2_transit_gateway_route_table_association" "tgw_ass" {
@@ -251,6 +307,10 @@ resource "aws_route_table" "connection_bypass_route_table" {
   tags = merge(var.nsvpc_tags, {
     Name="inspection-bypass-connection-route-table-${each.key}"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_route_table" "connection_unbypass_route_table" {
@@ -261,6 +321,10 @@ resource "aws_route_table" "connection_unbypass_route_table" {
   tags = merge(var.nsvpc_tags, {
     Name="inspection-unbypass-connection-route-table-${each.key}"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_route_table_association" "conn_rtb_ass" {

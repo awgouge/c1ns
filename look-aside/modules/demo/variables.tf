@@ -12,3 +12,15 @@ variable "demo_azs" {
   type        = list(string)
   description = "List of availability zones to use"
 }
+
+variable "struts_port" {
+  type        = string 
+  description = "Listening port for vulnerable Apache Struts"
+  default     = "80"
+}
+
+variable "flask_port" {
+  type        = string 
+  description = "Listening port for Flask attack server"
+  default     = "5000"
+}
