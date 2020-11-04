@@ -22,3 +22,8 @@ variable "api_key" {
   type        = string
   description = "API key to register the instances with Cloud One Network Security"
 }
+
+variable "my_pub_ip" {
+  type        = string
+  description = "your public IP"
+}

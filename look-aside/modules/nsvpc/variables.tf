@@ -43,5 +43,11 @@ variable enable_lambda {
 
 variable nsva_build {
   description = "NSVA Build to use"
-  default     = "5.5.0.10605"
+  default     = "2020.10.0.10702"
+}
+
+variable nsva_failover {
+  description = "Failover to second AZ?  Defaults to false which fails open by routing traffic back to the TGW"
+  type        = bool
+  default     = false
 }

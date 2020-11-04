@@ -24,3 +24,8 @@ variable "flask_port" {
   description = "Listening port for Flask attack server"
   default     = "5000"
 }
+
+variable "my_pub_ip" {
+  type        = string
+  description = "your public IP"
+}

@@ -199,8 +199,10 @@ resource "aws_route_table_association" "mgmt_rtb_ass" {
   route_table_id = aws_route_table.mgmt_rtbs[each.key].id
 }
 
-#Use one public route table for all public subnets
+# Create public route table for each public subnet
 resource "aws_route_table" "public_rtb" {
+  for_each = local.public_subnets
+
   vpc_id = aws_vpc.nsvpc.id
 
   route {
@@ -208,8 +210,23 @@ resource "aws_route_table" "public_rtb" {
     gateway_id = aws_internet_gateway.igw.id
   }
 
+  route {
+    cidr_block = "192.168.0.0/16"
+    network_interface_id = aws_network_interface.dataport_eni_As[each.key].id
+  }
+
+  route {
+    cidr_block = "172.16.0.0/12"
+    network_interface_id = aws_network_interface.dataport_eni_As[each.key].id
+  }
+
+  route {
+    cidr_block = "10.0.0.0/8"
+    network_interface_id = aws_network_interface.dataport_eni_As[each.key].id
+  }
+
   tags = merge(var.nsvpc_tags, {
-    Name="network-security-public-rtb"
+    Name="network-security-public-rtb-${each.key}"
   })
 
   lifecycle {
@@ -221,7 +238,7 @@ resource "aws_route_table_association" "public_rtb_ass" {
   for_each = local.public_subnets
 
   subnet_id      = aws_subnet.public_subnets[each.key].id
-  route_table_id = aws_route_table.public_rtb.id
+  route_table_id = aws_route_table.public_rtb[each.key].id
 }
 
 #One sanitized subnet route table per subnet
@@ -232,6 +249,21 @@ resource "aws_route_table" "private_sanitized_subnets_rtbs" {
 
   route {
     cidr_block = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.ngws[each.key].id
+  }
+
+  route {
+    cidr_block = "192.168.0.0/16"
+    transit_gateway_id = data.aws_ec2_transit_gateway.tgw.id
+  }
+
+  route {
+    cidr_block = "172.16.0.0/12"
+    transit_gateway_id = data.aws_ec2_transit_gateway.tgw.id
+  }
+
+  route {
+    cidr_block = "10.0.0.0/8"
     transit_gateway_id = data.aws_ec2_transit_gateway.tgw.id
   }
 
@@ -320,6 +352,20 @@ resource "aws_route_table" "connection_unbypass_route_table" {
 
   tags = merge(var.nsvpc_tags, {
     Name="inspection-unbypass-connection-route-table-${each.key}"
+  })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+
+resource "aws_route_table" "connection_failover_route_table" {
+  for_each = local.private_connection_subnets
+
+  vpc_id = aws_vpc.nsvpc.id
+
+  tags = merge(var.nsvpc_tags, {
+    Name="inspection-failover-connection-route-table-${each.key}"
   })
 
   lifecycle {

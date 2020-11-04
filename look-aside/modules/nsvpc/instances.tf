@@ -288,3 +288,18 @@ resource aws_route con_to_eni_A {
   route_table_id         = aws_route_table.connection_unbypass_route_table[each.key].id
   network_interface_id   = aws_network_interface.dataport_eni_As[each.key].id
 }
+
+#---------------------------------------------------------------------------------------
+# Route from the Failover Route Table to the NSVA in the other AZ
+#---------------------------------------------------------------------------------------
+resource aws_route fail_to_eni_A_az0 {
+  destination_cidr_block = "0.0.0.0/0"
+  route_table_id         = aws_route_table.connection_failover_route_table["${var.nsvpc_azs[0]}"].id
+  network_interface_id   = aws_network_interface.dataport_eni_As["${var.nsvpc_azs[1]}"].id
+}
+
+resource aws_route fail_to_eni_A_az1 {
+  destination_cidr_block = "0.0.0.0/0"
+  route_table_id         = aws_route_table.connection_failover_route_table["${var.nsvpc_azs[1]}"].id
+  network_interface_id   = aws_network_interface.dataport_eni_As["${var.nsvpc_azs[0]}"].id
+}

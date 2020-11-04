@@ -1,10 +1,15 @@
 import json
 import boto3
+import os
 
 
 def nsva_ha_event(event, context):
     """NSVA HA Lambda entrypoint"""
     print(f"Event: {event}")
+    if os.environ['FAILOVER'] == "true":
+        failover = True
+    else:
+        failover = False
     if 'bypass' in event:
         # Lambda triggered manually via a 'test event' to bypass/unbypass
         # - If bypassing, disable the Lambda, else enable the Lambda
@@ -14,9 +19,9 @@ def nsva_ha_event(event, context):
         # Lambda triggered by NSVA CloudWatch Alarm via SNS
         instance_id, alarm_state = parse_sns_event(event)
         if alarm_state == "OK":
-            nsva_bypass(instance_id, False)
+            nsva_bypass(instance_id, False, failover)
         elif alarm_state == "ALARM":
-            nsva_bypass(instance_id, True)
+            nsva_bypass(instance_id, True, failover)
         else:
             print(f"Invalid Alarm state {alarm_state} for {instance_id}")
 
@@ -48,10 +53,10 @@ def all_nsva_bypass(bypass):
     instances = ec2.describe_instances(Filters=[{'Name': 'network-interface.vpc-id', 'Values': [inspection_vpc_id]}])
 
     for instance in instances["Reservations"]:
-        nsva_bypass(instance["Instances"][0]['InstanceId'], bypass)
+        nsva_bypass(instance["Instances"][0]['InstanceId'], bypass, True) #when bypassing all, only bypass
 
 
-def nsva_bypass(instance_id, bypass):
+def nsva_bypass(instance_id, bypass, failover):
     """Bypass or Unbypass the specified NSVA"""
 
     # Get the NSVA Availability Zone AZ
@@ -66,7 +71,10 @@ def nsva_bypass(instance_id, bypass):
     # Get information about the bypass and unbypass Route Tables
     unbypass_rtb_name = 'inspection-unbypass-connection-route-table-' + azone
     unbypass_rtb = ec2.describe_route_tables(Filters=[{'Name': 'tag:Name', 'Values': [unbypass_rtb_name]}])
-    bypass_rtb_name = 'inspection-bypass-connection-route-table-' + azone
+    if failover:
+        bypass_rtb_name = 'inspection-failover-connection-route-table-' + azone
+    else:
+        bypass_rtb_name = 'inspection-bypass-connection-route-table-' + azone
     bypass_rtb = ec2.describe_route_tables(Filters=[{'Name': 'tag:Name', 'Values': [bypass_rtb_name]}])
 
     # Find the Connection Subnet Route Table Association ID (either the bypass/unbypass Route Table will be associated)
@@ -82,7 +90,7 @@ def nsva_bypass(instance_id, bypass):
     if bypass:
         rtb_id = bypass_rtb["RouteTables"][0]["RouteTableId"]
         ec2.replace_route_table_association(AssociationId=rtb_association_id, RouteTableId=rtb_id)
-        print(f"Bypassed NSVA {instance_id} {azone}")
+        print(f"Bypassed NSVA {instance_id} {azone} using {bypass_rtb_name}")
     else:
         rtb_id = unbypass_rtb["RouteTables"][0]["RouteTableId"]
         ec2.replace_route_table_association(AssociationId=rtb_association_id, RouteTableId=rtb_id)

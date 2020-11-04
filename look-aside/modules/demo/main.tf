@@ -65,8 +65,12 @@ resource "aws_route_table" "work_rtbs" {
   vpc_id = aws_vpc.vpcs[each.key].id 
 
   route {
-    cidr_block             = "0.0.0.0/0"
+    cidr_block             = var.my_pub_ip
     gateway_id             = aws_internet_gateway.igw[each.key].id
+  }
+  route {
+    cidr_block             = "0.0.0.0/0"
+    transit_gateway_id     = aws_ec2_transit_gateway.tgw.id
   }
   route {
     cidr_block             = "192.168.0.0/16"

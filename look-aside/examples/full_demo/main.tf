@@ -22,6 +22,7 @@ module "demo" {
   demo_cidrs        = ["10.10.1.0/24", "10.10.2.0/24"]
   demo_tags         = local.common_tags
   demo_azs          = slice(data.aws_availability_zones.available.names, 0, 2)
+  my_pub_ip         = var.my_pub_ip
 }
 
 module "nsvpc" {
@@ -33,6 +34,7 @@ module "nsvpc" {
   nsvpc_tags        = local.common_tags
   nsvpc_azs         = slice(data.aws_availability_zones.available.names, 0, 2)
   register_api_key  = var.api_key #Cloud One API key used to register the instances
+  nsva_failover     = true
 }
 
 resource "aws_ec2_transit_gateway_route" "demo_tgw_rtb_route" {

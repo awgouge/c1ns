@@ -122,6 +122,10 @@ module lambda_nsva_ha {
   source_path                       = ["${path.module}/src/"]
   cloudwatch_logs_retention_in_days = 14
 
+  environment_variables = {
+    FAILOVER = var.nsva_failover ? "true" : "false"
+  }
+
   tags = merge(var.nsvpc_tags, {
     Name="NsvaHa"
   })
