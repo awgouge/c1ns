@@ -23,3 +23,6 @@ export TF_VAR_user=$USER
 # CIDR address block to use for the Network security VPC.
 # Do no change if this is a demo
 export TF_VAR_cidr="192.168.200.0/24"
+
+# Your public IP address.  Will be used to restrict communication to your public IP address
+export TF_VAR_my_pub_ip=$(curl -s https://api.ipify.org)/32
