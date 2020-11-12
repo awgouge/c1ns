@@ -248,7 +248,7 @@ cd /home/ubuntu/c1ns_demo_flask
 sudo chmod +x init.sh
 echo ${cidrhost(local.victim_subnets[each.key], 10)} >> VICTIM_HOST.txt
 echo ${var.struts_port} >> STRUTS_PORT.txt
-sudo -H ./init.sh ${cidrhost(local.victim_subnets[each.key], 10)} ${var.flask_port}
+sudo -H ./init.sh ${cidrhost(local.victim_subnets[each.key], 10)} ${var.struts_port}
 
   EOF
 
