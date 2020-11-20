@@ -260,5 +260,5 @@ sudo -H ./init.sh ${cidrhost(local.victim_subnets[each.key], 10)} ${var.struts_p
     ignore_changes = [tags]
   }
 
-  depends_on = [aws_ec2_transit_gateway.tgw] #added to address timing issue createing the TGW
+  depends_on = [aws_ec2_transit_gateway.tgw] #added to address timing issue creating the TGW
 }
