@@ -274,6 +274,8 @@ resource "aws_route_table" "private_sanitized_subnets_rtbs" {
   lifecycle {
     ignore_changes = [tags]
   }
+
+  depends_on = [data.aws_ec2_transit_gateway.tgw]
 }
 
 resource "aws_route_table_association" "private_sanitized_subnets_rtb_ass" {
@@ -343,6 +345,8 @@ resource "aws_route_table" "connection_bypass_route_table" {
   lifecycle {
     ignore_changes = [tags]
   }
+
+  depends_on = [data.aws_ec2_transit_gateway.tgw]
 }
 
 resource "aws_route_table" "connection_unbypass_route_table" {
